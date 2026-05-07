@@ -109,11 +109,7 @@ ADD
 UPDATE
     Colors2
 SET
-    Code =
-        '#'
-        + FORMAT(Red, 'X2')
-        + FORMAT(Green, 'X2')
-        + FORMAT(Blue, 'X2');
+    Code = '#' + FORMAT(Red, 'X2') + FORMAT(Green, 'X2') + FORMAT(Blue, 'X2');
 
 --Uppgift 1 g)
 DROP TABLE IF EXISTS Types2;
@@ -124,7 +120,7 @@ SELECT
 INTO
     Types2
 FROM
-    Types
+    Types;
 
 
 SELECT
