@@ -29,7 +29,7 @@ FROM
 UPDATE
     Users2
 SET
-    UserName = lower(LEFT(CAST(FirstName as nvarchar), 2)) + lower(LEFT(CAST(LastName as nvarchar), 2));
+    UserName = LOWER(LEFT(CAST(FirstName as nvarchar), 2)) + LOWER(LEFT(CAST(LastName as nvarchar), 2));
 
 --Uppgift 1 c)
 DROP TABLE IF EXISTS Airports2;
@@ -45,7 +45,7 @@ FROM
 UPDATE
     Airports2
 SET
-    Time = ISNULL(Time, '-'),
+    [Time] = ISNULL([Time], '-'),
     DST = ISNULL(DST, '-');
 
 --Uppgift 1 d)
@@ -56,34 +56,34 @@ SELECT
 INTO
     Elements2
 FROM
-    Elements;
+    [Elements];
 
 
 DELETE FROM
     Elements2
 WHERE
-    Name IN ('Erbium', 'Helium', 'Nitrogen', 'Platinum', 'Selenium') OR Name LIKE '[dkmou]%';
+    [Name] IN ('Erbium', 'Helium', 'Nitrogen', 'Platinum', 'Selenium') OR [Name] LIKE '[dkmou]%';
 
 --Uppgift 1 e)
 DROP TABLE IF EXISTS Elements3;
 
 SELECT
     Symbol,
-    Name,
+    [Name],
     CASE 
-        WHEN LOWER(LEFT(Name, len(Symbol))) = LOWER(Symbol) THEN 'Yes'
+        WHEN LOWER(LEFT([Name], len(Symbol))) = LOWER(Symbol) THEN 'Yes'
         ELSE 'No'
     END AS Matching
 INTO 
     Elements3
 FROM 
-    Elements;
+    [Elements];
 
 --Uppgift 1 f)
 DROP TABLE IF EXISTS Colors2;
 
 SELECT
-    Name,
+    [Name],
     Red,
     Green,
     Blue
@@ -115,7 +115,7 @@ SET
 DROP TABLE IF EXISTS Types2;
 
 SELECT
-    Integer,
+    [Integer],
     String
 INTO
     Types2
@@ -124,10 +124,10 @@ FROM
 
 
 SELECT
-    Integer,
-    Integer * 0.01 AS Float,
+    [Integer],
+    [Integer] * 0.01 AS Float,
     String,
-    CAST(DATEADD(DAY, Integer - 1, DATEADD(MINUTE, Integer, '2019-01-01 09:00:00')) AS datetime2(7)) AS DateTime,
-    Integer % 2 AS Bool
+    CAST(DATEADD(DAY, [Integer] - 1, DATEADD(MINUTE, [Integer], '2019-01-01 09:00:00')) AS datetime2(7)) AS DateTime,
+    [Integer] % 2 AS Bool
 FROM
     Types2;
