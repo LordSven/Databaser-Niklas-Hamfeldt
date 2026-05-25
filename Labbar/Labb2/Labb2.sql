@@ -510,9 +510,30 @@ SELECT
     f.Förnamn + ' ' + f.Efternamn AS Namn,
     f.Pseudonym,
     CASE WHEN Dödsdatum IS NULL
-        THEN CAST(DATEDIFF(YEAR, Födelsedatum, GETDATE()) AS NVARCHAR) + ' år'
-
-        ELSE 'Dog ' + CAST(DATEPART(YEAR, Dödsdatum) AS NVARCHAR) + ' vid ' + CAST(DATEDIFF(YEAR, Födelsedatum, Dödsdatum) AS NVARCHAR) + ' års ålder'
+        THEN
+            CAST(DATEDIFF(YEAR, Födelsedatum, GETDATE()) -
+            CASE WHEN DATEADD(
+                    YEAR,
+                    DATEDIFF(YEAR, Födelsedatum, GETDATE()),
+                    Födelsedatum
+                ) > GETDATE()
+                THEN 1
+                ELSE 0
+            END AS NVARCHAR) + ' år'
+        ELSE
+            'Dog ' +
+            CAST(DATEPART(YEAR, Dödsdatum) AS NVARCHAR) +
+            ' vid ' +
+            CAST(DATEDIFF(YEAR, Födelsedatum, Dödsdatum) -
+            CASE WHEN DATEADD(
+                    YEAR,
+                    DATEDIFF(YEAR, Födelsedatum, Dödsdatum),
+                    Födelsedatum
+                ) > Dödsdatum
+                THEN 1
+                ELSE 0
+            END AS NVARCHAR) +
+            ' års ålder'
     END AS Ålder,
     COUNT(DISTINCT mf.ISBN13) AS Titlar,
     SUM(ls.Antal * b.Pris) AS Lagervärde
@@ -629,3 +650,5 @@ ELSE
 END;
 
 GO
+
+SELECT * FROM TitlarPerFörfattare;
