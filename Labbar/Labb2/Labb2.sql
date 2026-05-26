@@ -209,7 +209,7 @@ VALUES
     ('9780345806789', 'The Shining', 'Engelska', 10, '1977-01-28', 129.00, 10, 3),
     ('9780553293357', 'Foundation', 'Engelska', 11, '1951-06-01', 119.00, 1, 2),
     ('9780451457998', '2001: A Space Odyssey', 'Engelska', 12, '1968-07-01', 139.00, 2, 2),
-    ('9780143129455', 'The Call of Cthulhu and Other Weird Stories', 'Engelska', 3, '1928-02-01', 79.00, 9, 3),
+    ('9780143129455', 'The Call of Cthulhu and Other Weird Stories', 'Engelska', 13, '1928-02-01', 79.00, 9, 3),
     ('9780141439471', 'Frankenstein', 'Engelska', 14, '1818-01-01', 89.00, 4, 3),
     ('9781435171374', 'The Raven and Other Poems', 'Engelska', 15, '1845-01-29', 69.00, 5, 11),
     ('9780743273565', 'The Great Gatsby', 'Engelska', 16, '1925-04-10', 99.00, 6, 4),
