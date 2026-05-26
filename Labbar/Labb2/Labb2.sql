@@ -1,5 +1,7 @@
 USE Bokhandel;
 
+GO
+
 DROP TABLE IF EXISTS MultiplaFörfattare;
 DROP TABLE IF EXISTS OrderDetaljer;
 DROP TABLE IF EXISTS Ordrar;
@@ -13,6 +15,8 @@ DROP TABLE IF EXISTS Författare;
 DROP VIEW IF EXISTS TitlarPerFörfattare;
 DROP VIEW IF EXISTS OrdrarPerKund;
 DROP PROCEDURE IF EXISTS FlyttaBok;
+
+GO
 
 CREATE TABLE Författare (
     FörfattarID INT IDENTITY(1,1) PRIMARY KEY,
@@ -95,6 +99,8 @@ CREATE TABLE OrderDetaljer (
     FOREIGN KEY (OrderID) REFERENCES Ordrar(OrderID),
     FOREIGN KEY (ISBN13) REFERENCES Böcker(ISBN13)
 );
+
+GO
 
 INSERT INTO
     Författare (Förnamn, Andranamn, Efternamn, Pseudonym, Födelsedatum, Dödsdatum)
@@ -473,6 +479,8 @@ VALUES
     (53, '9780573707735', 1, 109.00),
     (53, '9780345806789', 1, 129.00);
 
+GO
+
 CREATE TABLE MultiplaFörfattare (
     ISBN13 NVARCHAR(13) NOT NULL,
     FörfattarID INT NOT NULL,
@@ -492,6 +500,8 @@ INSERT INTO
     MultiplaFörfattare (ISBN13, FörfattarID)
 VALUES
     ('9781473214712', 20);
+
+GO
 
 ALTER TABLE
     Böcker
@@ -586,69 +596,90 @@ BEGIN
 
 SET NOCOUNT ON;
 
-IF NOT EXISTS (
-    SELECT *
-    FROM LagerSaldo
-    WHERE ButikID = @FrånButikID
-    AND ISBN13 = @ISBN13
-)
-BEGIN
-    RAISERROR('Boken finns inte i källbutiken.', 16, 1);
-    RETURN;
-END;
+    BEGIN TRY
+        
+        BEGIN TRANSACTION;
 
-IF (
-    SELECT
-        Antal
-    FROM
-        LagerSaldo
-    WHERE
-        ButikID = @FrånButikID
-    AND
-        ISBN13 = @ISBN13
-) < @Antal
-BEGIN
-    RAISERROR('Inte tillräckligt antal böcker i lager.', 16, 2);
-    RETURN;
-END;
+            IF NOT EXISTS (
+                SELECT
+                    *
+                FROM
+                    LagerSaldo
+                WHERE
+                    ButikID = @FrånButikID
+                AND
+                    ISBN13 = @ISBN13
+            )
+                BEGIN
+                    RAISERROR('Boken finns inte i källbutiken.', 16, 1);
+                END;
 
-UPDATE
-    LagerSaldo
-SET
-    Antal = Antal - @Antal
-WHERE
-    ButikID = @FrånButikID
-AND
-    ISBN13 = @ISBN13;
+            IF (
+                SELECT
+                    Antal
+                FROM
+                    LagerSaldo
+                WHERE
+                    ButikID = @FrånButikID
+                AND
+                    ISBN13 = @ISBN13
+            ) < @Antal
+                BEGIN
+                    RAISERROR('Inte tillräckligt antal böcker i lager.', 16, 2);
+                END;
 
-IF EXISTS (
-    SELECT
-        *
-    FROM
-        LagerSaldo
-    WHERE
-        ButikID = @TillButikID
-    AND
-        ISBN13 = @ISBN13
-)
-BEGIN
-    UPDATE
-        LagerSaldo
-    SET
-        Antal = Antal + @Antal
-    WHERE
-        ButikID = @TillButikID
-    AND
-        ISBN13 = @ISBN13;
-END
-ELSE
-    BEGIN
-        INSERT INTO LagerSaldo (ButikID, ISBN13, Antal)
-        VALUES (@TillButikID, @ISBN13, @Antal);
-    END;
+            UPDATE
+                LagerSaldo
+            SET
+                Antal = Antal - @Antal
+            WHERE
+                ButikID = @FrånButikID
+            AND
+                ISBN13 = @ISBN13;
+
+            IF EXISTS (
+                SELECT
+                    *
+                FROM
+                    LagerSaldo
+                WHERE
+                    ButikID = @TillButikID
+                AND
+                    ISBN13 = @ISBN13
+            )
+                BEGIN
+                    UPDATE
+                        LagerSaldo
+                    SET
+                        Antal = Antal + @Antal
+                    WHERE
+                        ButikID = @TillButikID
+                    AND
+                        ISBN13 = @ISBN13;
+                END
+            ELSE
+                BEGIN
+                    INSERT INTO
+                        LagerSaldo (ButikID, ISBN13, Antal)
+                    VALUES
+                        (@TillButikID, @ISBN13, @Antal);
+                END;
+
+        COMMIT TRANSACTION;
+
+    END TRY
+
+    BEGIN CATCH
+
+        IF @@TRANCOUNT > 0
+            BEGIN
+                ROLLBACK TRANSACTION;
+            END;
+
+        RAISERROR('Ett fel inträffade, flytten avbröts', 16, 1);
+
+    END CATCH;
 
 END;
 
 GO
-
-SELECT * FROM TitlarPerFörfattare;
